@@ -59,9 +59,20 @@
 | Windows Web Experience | `MicrosoftWindows.Client.WebExperience_` | Web integration features |
 | Dev Home | `Microsoft.Windows.DevHome_` | Developer tools hub |
 
+## Optional Installation
+1. After setup and connected to the internet, it is recommended to install the package manager from Microsoft called `WinGet`. Run this command in PowerShell:
+```
+Add-AppxPackage -RegisterByFamilyName -MainPackage Microsoft.DesktopAppInstaller_8wekyb3d8bbwe
+```
+
 ## Known issues
 1. Microsoft Edge is removed, but remnants can be found in Settings (App itself is deleted).
-   - You can install any browser using WinGet (update first using Microsoft Store).
+   - You can install any browser using `WinGet` (update first using Microsoft Store or PowerShell).
+```
+winget install Mozilla.Firefox
+winget install Opera.Opera
+winget install Google.Chrome
+```
    - To use Edge, Copilot, and Web Search, install Edge using Winget: `winget install edge`.
 2. Outlook and Dev Home might reappear after some time.
 3. If building on `arm64` architecture, a glimpse of an error can be seen while running the script.
