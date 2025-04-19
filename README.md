@@ -1,91 +1,73 @@
-# tiny11builder
+# Tiny11 Builder (GitHub Actions)
 
-Scripts to build a trimmed-down Windows 11 image - now in **PowerShell**!
-<br>
-Tiny11 builder, now completely overhauled.
-</br>
-After more than a year (for which I am so sorry) of no updates, tiny11 builder is now a much more complete and flexible solution - one script fits all. Also, it is a steppingstone for an even more fleshed-out solution.
-<br>
-You can now use it on ANY Windows 11 release (not just a specific build), as well as ANY language or architecture.
-This is made possible thanks to the much-improved scripting capabilities of PowerShell, compared to the older Batch release.
-</br>
-Since it is written in PowerShell, you need to set the execution policy to  `Unrestricted`, so that you could run the script.
-If you haven't done this before, make sure to run `Set-ExecutionPolicy unrestricted` as administrator in PowerShell before running the script, otherwise it would just crash.
+> [!NOTE]
+> The original README can be accessed from the [link](https://github.com/ntdevlabs/tiny11builder/blob/main/README.md).
 
+## Instructions:
+1. Fork this repository.
+2. Download Windows 11 from the [Microsoft Website](https://www.microsoft.com/en-us/software-download/windows11).
+   - Select your device architecture (x64 or Arm64).
+   - Select the language of your choice (e.g., English).
+   - Right-click the `Download button` and press `Copy Link Address`.
+3. Go to the `Actions` tab and select `Build Tiny11 ISO` workflow.
+4. Press the `Run workflow` button.
+   - Select `ISO Image Edition` (e.g., 1 for Home, 6 for Pro)
+   - Provide your ISO Image URL (leave blank for default 24H2 Image)
+8. Sit back and relax :)
+9. When the image is done building, press the workflow run `Build Tiny11 ISO` and download the Artifact named `tiny11-iso`.
 
-This is a script created to automate the build of a streamlined Windows 11 image, similar to tiny11.
-My main goal is to use only Microsoft utilities like DISM, and no utilities from external sources. The only executable included is **oscdimg.exe**, which is provided in the Windows ADK and it is used to create bootable ISO images. 
-Also included is an unattended answer file, which is used to bypass the Microsoft Account on OOBE and to deploy the image with the `/compact` flag.
-It's open-source, **so feel free to add or remove anything you want!** Feedback is also much appreciated.
+## Removed Pre-Installed Applications
 
-Also, for the very first time, **introducing tiny11 core builder**! A more powerful script, designed for a quick and dirty development testbed. Just the bare minimun, none of the fluff. 
-This script generates a significantly reduced Windows 11 image. However, it's not suitable for regular use due to its lack of serviceability - you can't add languages, updates, or features post-creation. tiny11 Core is not a full Windows 11 substitute but a rapid testing or development tool, potentially useful for VM environments.
+| Application | Package Name | Description |
+|-------------|--------------|-------------|
+| Clipchamp | `Clipchamp.Clipchamp_` | Video editing software |
+| Bing News | `Microsoft.BingNews_` | News aggregator |
+| Bing Search | `Microsoft.BingSearch_` | Search engine |
+| Bing Weather | `Microsoft.BingWeather_` | Weather application |
+| Xbox Game Bar | `Microsoft.GamingApp_` | Gaming overlay and tools |
+| Get Help | `Microsoft.GetHelp_` | Windows support application |
+| Get Started | `Microsoft.Getstarted_` | Windows onboarding app |
+| Microsoft Office Hub | `Microsoft.MicrosoftOfficeHub_` | Office application hub |
+| Microsoft Solitaire Collection | `Microsoft.MicrosoftSolitaireCollection_` | Collection of solitaire games |
+| Outlook | `Microsoft.OutlookForWindows_` | Email and calendar application |
+| Paint | `Microsoft.Paint_` | Image editing application |
+| People | `Microsoft.People_` | Contacts management |
+| Power Automate Desktop | `Microsoft.PowerAutomateDesktop_` | Automation tool |
+| Sticky Notes | `Microsoft.MicrosoftStickyNotes_` | Digital sticky notes |
+| Microsoft To Do | `Microsoft.Todos_` | Task management application |
+| Photos | `Microsoft.Windows.Photos_` | Photo viewing and editing |
+| Alarms & Clock | `Microsoft.WindowsAlarms_` | Alarm and timer application |
+| Calculator | `Microsoft.WindowsCalculator_` | Calculator application |
+| Camera | `Microsoft.WindowsCamera_` | Camera application |
+| Mail & Calendar | `microsoft.windowscommunicationsapps_` | Email and calendar (replaced by Outlook) |
+| Feedback Hub | `Microsoft.WindowsFeedbackHub_` | Windows feedback tool |
+| Maps | `Microsoft.WindowsMaps_` | Mapping application |
+| Notepad | `Microsoft.WindowsNotepad_` | Text editor |
+| Voice Recorder | `Microsoft.WindowsSoundRecorder_` | Audio recording application |
+| Xbox Console Companion | `Microsoft.Xbox.TCUI_` | Xbox companion application |
+| Xbox Game Bar | `Microsoft.XboxGamingOverlay_` | Gaming overlay |
+| Xbox Game Bar | `Microsoft.XboxGameOverlay_` | Gaming overlay (alternative) |
+| Xbox Speech to Text | `Microsoft.XboxSpeechToTextOverlay_` | Speech recognition for gaming |
+| Your Phone | `Microsoft.YourPhone_` | Phone linking application |
+| Groove Music | `Microsoft.ZuneMusic_` | Music player (legacy) |
+| Movies & TV | `Microsoft.ZuneVideo_` | Video player (Netflix-Like) |
+| Microsoft Family | `MicrosoftCorporationII.MicrosoftFamily_` | Family safety features |
+| Quick Assist | `MicrosoftCorporationII.QuickAssist_` | Remote assistance tool |
+| Microsoft Teams | `MicrosoftTeams_` | Collaboration and communication platform |
+| Cortana | `Microsoft.549981C3F5F10_` | Digital assistant |
+| Microsoft Teams | `MSTeams_` | Microsoft Teams application |
+| Windows Web Experience | `MicrosoftWindows.Client.WebExperience_` | Web integration features |
+| Dev Home | `Microsoft.Windows.DevHome_` | Developer tools hub |
 
-Instructions:
-
-1. Download Windows 11 from the Microsoft website (<https://www.microsoft.com/software-download/windows11>)
-2. Mount the downloaded ISO image using Windows Explorer.
-3. Select the drive letter where the image is mounted (only the letter, no colon (:))
-4. Select the SKU that you want the image to be based.
-5. Sit back and relax :)
-6. When the image is completed, you will see it in the folder where the script was extracted, with the name tiny11.iso
-
-What is removed:
-
-- Clipchamp
-- News
-- Weather
-- Xbox (although Xbox Identity provider is still here, so it should be possible to be reinstalled with no issues)
-- GetHelp
-- GetStarted
-- Office Hub
-- Solitaire
-- PeopleApp
-- PowerAutomate
-- ToDo
-- Alarms
-- Mail and Calendar
-- Feedback Hub
-- Maps
-- Sound Recorder
-- Your Phone
-- Media Player
-- QuickAssist
-- Internet Explorer
-- Tablet PC Math
-- Edge
-- OneDrive
-
-For tiny11 core:
-- all of the above +
-- Windows Component Store (WinSxS)
-- Windows Defender (only disabled, can be enabled back if needed)
-- Windows Update (Windows Update wouldn't work anyway without WinSxS, so enabling it would only put the system in a state where it would try to update but fail spectacularily)
-- WinRE
-<br>
-Keep in mind that **you cannot add back features in tiny11 core**!
-</br>
-<br>
-You will be asked during image creation if you want to enable .net 3.5 support!
-</br>
-Known issues:
-
-1. Although Edge is removed, there are some remnants in the Settings. But the app in itself is deleted. You can install any browser using WinGet (after you update the app using Microsoft Store). If you want Edge, Copilot and Web Search back, simply install Edge using Winget: `winget install edge`.
-<br>
-Note: You might have to update Winget before being able to install any apps, using Microsoft Store.
-<br>
-</br>
+## Known issues
+1. Microsoft Edge is removed, but remnants can be found in Settings (App itself is deleted).
+   - You can install any browser using WinGet (update first using Microsoft Store).
+   - To use Edge, Copilot, and Web Search, install Edge using Winget: `winget install edge`.
 2. Outlook and Dev Home might reappear after some time.
-<br>
-</br>
-3. If you are using this script on arm64, you might see a glimpse of an error while running the script. This is caused by the fact that the arm64 image doesn't have OneDriveSetup.exe included in the System32 folder.
+3. If building on `arm64` architecture, a glimpse of an error can be seen while running the script.
+   - The `arm64` image doesn't have OneDriveSetup.exe included in the System32 folder.
+4. There are some errors, like `The system was unable to find the specified registry key or value.` or `The system cannot find the path specified.`.
 
-Features to be implemented:
-- ~~disabling telemetry~~ (Implemented in the 04-29-24 release!)
-- more ad suppression
-- improved language and arch detection
-- more flexibility in what to keep and what to delete
-- maybe a GUI???
-
-And that's pretty much it for now!
-Thanks for trying it and let me know how you like it!
+## Features to be implemented
+- More ad suppression
+- Customization on what to keep

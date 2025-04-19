@@ -1,0 +1,138 @@
+name: Build Tiny11 ISO
+
+on:
+  push:
+    paths:
+      - .github/workflows/build-tiny11.yml
+  workflow_dispatch:
+    inputs:
+      image_index:
+        description: 'Select the Windows Image Index to use'
+        required: true
+        default: '6: Windows 11 Pro'
+        type: choice
+        options:
+          - '1: Windows 11 Home'
+          - '2: Windows 11 Home N'
+          - '3: Windows 11 Home Single Language'
+          - '4: Windows 11 Education'
+          - '5: Windows 11 Education N'
+          - '6: Windows 11 Pro'
+          - '7: Windows 11 Pro N'
+          - '8: Windows 11 Pro Education'
+          - '9: Windows 11 Pro Education N'
+          - '10: Windows 11 Pro for Workstations'
+          - '11: Windows 11 Pro N for Workstations'
+      custom_iso_url:
+        description: 'Optional: Provide your own Windows 11 ISO URL (leave blank to use default)'
+        required: false
+        type: string
+
+env:
+  DEFAULT_INDEX: '6'  # Default index when triggered by push
+  DEFAULT_ISO_URL: 'https://archive.org/download/Win11_24H2_English_x64/Win11_24H2_English_x64.iso'
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Determine ISO URL
+        shell: pwsh
+        id: determine_iso
+        run: |
+          # Use custom URL if provided, otherwise default
+          $isoUrl = "${{ github.event.inputs.custom_iso_url }}"
+          if ([string]::IsNullOrWhiteSpace($isoUrl)) {
+            $isoUrl = "${{ env.DEFAULT_ISO_URL }}"
+            Write-Host "Using default ISO URL: $isoUrl"
+          } else {
+            Write-Host "Using custom ISO URL: $isoUrl"
+          }
+          echo "iso_url=$isoUrl" >> $env:GITHUB_OUTPUT
+          echo "iso_filename=$(Split-Path $isoUrl -Leaf)" >> $env:GITHUB_OUTPUT
+
+      - name: Download Windows 11 ISO
+        shell: pwsh
+        run: |
+          $isoUrl = "${{ steps.determine_iso.outputs.iso_url }}"
+          $isoFilename = "${{ steps.determine_iso.outputs.iso_filename }}"
+          $isoPath = Join-Path $env:GITHUB_WORKSPACE $isoFilename
+          Write-Host "Downloading ISO from $isoUrl to $isoPath"
+          Invoke-WebRequest -Uri $isoUrl -OutFile $isoPath -UseBasicParsing
+          Write-Host "ISO Downloaded."
+
+      - name: Mount ISO and Get Drive Letter
+        shell: pwsh
+        id: mount_iso
+        run: |
+          $isoFilename = "${{ steps.determine_iso.outputs.iso_filename }}"
+          $isoPath = Join-Path $env:GITHUB_WORKSPACE $isoFilename
+          Write-Host "Mounting ISO: $isoPath"
+          try {
+            $mountResult = Mount-DiskImage -ImagePath $isoPath -PassThru -ErrorAction Stop
+            $volume = $mountResult | Get-Volume -ErrorAction Stop
+            $driveLetter = $volume.DriveLetter
+            if (-not $driveLetter) {
+              throw "Could not get drive letter from mounted ISO."
+            }
+            Write-Host "ISO mounted to drive: $driveLetter"
+            echo "drive_letter=$driveLetter" >> $env:GITHUB_OUTPUT
+          } catch {
+            Write-Error "Failed to mount ISO or get drive letter: $_"
+            exit 1
+          }
+
+      - name: Run tiny11maker script
+        shell: pwsh
+        run: |
+          $drive = "${{ steps.mount_iso.outputs.drive_letter }}"
+          
+          # Get index - use input if available (workflow_dispatch), otherwise use default
+          if ("${{ github.event_name }}" -eq "workflow_dispatch") {
+            $index = "${{ github.event.inputs.image_index }}".Split(':')[0].Trim()
+          } else {
+            $index = "${{ env.DEFAULT_INDEX }}"
+          }
+          
+          $scriptPath = Join-Path $env:GITHUB_WORKSPACE "tiny11maker.ps1"
+
+          Write-Host "Running tiny11maker.ps1 with Drive: $drive, Index: $index"
+          Write-Host "Script Path: $scriptPath"
+
+          Set-ExecutionPolicy RemoteSigned -Scope Process -Force
+
+          try {
+              & "$scriptPath" -NonInteractive -DriveLetterInput $drive -Index $index -ErrorAction Stop
+              Write-Host "tiny11maker script finished successfully."
+          } catch {
+              Write-Error "tiny11maker script failed: $_"
+              $logPath = Join-Path $env:GITHUB_WORKSPACE "tiny11.log"
+              if (Test-Path $logPath) {
+                Write-Host "--- tiny11.log ---"
+                Get-Content $logPath | Write-Host
+                Write-Host "--- End tiny11.log ---"
+              }
+              exit 1
+          }
+
+      - name: Upload tiny11 ISO artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: tiny11-iso
+          path: ${{ github.workspace }}\\tiny11.iso
+          if-no-files-found: error
+
+      - name: Cleanup ISO
+        if: always()
+        shell: pwsh
+        run: |
+          $isoFilename = "${{ steps.determine_iso.outputs.iso_filename }}"
+          $isoPath = Join-Path $env:GITHUB_WORKSPACE $isoFilename
+          Write-Host "Dismounting ISO: $isoPath"
+          Dismount-DiskImage -ImagePath $isoPath -ErrorAction SilentlyContinue
+          Write-Host "Removing downloaded ISO: $isoPath"
+          Remove-Item -Path $isoPath -Force -ErrorAction SilentlyContinue
+          Write-Host "Cleanup complete."
