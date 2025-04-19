@@ -3,7 +3,7 @@
 > [!NOTE]
 > The original README can be accessed from the [link](https://github.com/ntdevlabs/tiny11builder/blob/main/README.md).
 
-## Instructions:
+## Instructions
 1. Fork this repository.
 2. Download Windows 11 from the [Microsoft Website](https://www.microsoft.com/en-us/software-download/windows11).
    - Select your device architecture (x64 or Arm64).
@@ -71,3 +71,11 @@
 ## Features to be implemented
 - More ad suppression
 - Customization on what to keep
+
+## Credits
+- [NTDEV](https://github.com/ntdevlabs) and other contributors for making this amazing script.
+- [adrijanh9](https://github.com/adrijanh9) for updated [services](https://github.com/ntdevlabs/tiny11builder/pull/273) and [software](https://github.com/ntdevlabs/tiny11builder/pull/253) to remove.
+- [altship](https://github.com/altship) for [fixing 24H2 services deletion](https://github.com/ntdevlabs/tiny11builder/pull/289).
+- [Snshadow](https://github.com/Snshadow) for [fixing with oscdimg.exe search, ExecutionPolicy, etc](https://github.com/ntdevlabs/tiny11builder/pull/319/commits).
+- [MaykGyver](https://github.com/MaykGyver) for [the updated software list to remove](https://github.com/ntdevlabs/tiny11builder/pull/324).
+- [Miiraak](https://github.com/Miiraak) for [adding SKU validation](https://github.com/ntdevlabs/tiny11builder/pull/338).
