@@ -1,10 +1,11 @@
 param (
     [ValidatePattern('^[c-zC-Z]$')]
-    [string]$DriveLetterInput, # Renamed to avoid conflict with internal variable
+    [string]$DriveLetterInput,
     [string]$Index,
     [ValidatePattern('^[c-zC-Z]$')]
-    [string]$ScratchDiskLetter, # Renamed for clarity
-    [switch]$NonInteractive
+    [string]$ScratchDiskLetter,
+    [switch]$NonInteractive,
+    [string]$PackagesToKeep
 )
 
 if ($Index -match '^(.*?):') {
@@ -255,11 +256,23 @@ if ($architecture) {
 
 Write-Host "Mounting complete! Performing removal of applications...`n"
 
+# Parse the PackagesToKeep input string into an array, trimming whitespace
+$keepList = @()
+if (-not [string]::IsNullOrWhiteSpace($PackagesToKeep)) {
+    $keepList = $PackagesToKeep.Split(',') | ForEach-Object { $_.Trim() }
+    Write-Host "Packages explicitly requested to keep:"
+    $keepList | ForEach-Object { Write-Host "- $_" }
+} else {
+    Write-Host "No specific packages requested to keep via input."
+}
+
 $packages = Get-ProvisionedAppxPackage -Path "$ScratchDisk\scratchdir" |
     ForEach-Object {
         $_.PackageName
     }
-$packagePrefixes = 
+
+# List of prefixes for packages that *could* be removed
+$removablePackagePrefixes = 
     'Clipchamp.Clipchamp_',
     'Microsoft.BingNews_',
     'Microsoft.BingSearch_',
@@ -294,15 +307,32 @@ $packagePrefixes =
     'MicrosoftCorporationII.MicrosoftFamily_',
     'MicrosoftCorporationII.QuickAssist_',
     'MicrosoftTeams_',
-    'Microsoft.549981C3F5F10_',
+    'Microsoft.549981C3F5F10_', # Cortana
     'MSTeams_',
     'MicrosoftWindows.Client.WebExperience_',
     'Microsoft.Windows.DevHome_'
 
+# Determine which packages to actually remove
 $packagesToRemove = $packages | Where-Object {
-    $packageName = $_
-    $packagePrefixes -contains ($packagePrefixes | Where-Object { $packageName -like "$_*" })
+    $currentPackageName = $_
+    $shouldRemove = $false
+    # Check if the current package matches any removable prefix
+    $matchingPrefix = $removablePackagePrefixes | Where-Object { $currentPackageName -like "$_*" } | Select-Object -First 1
+    
+    if ($matchingPrefix) {
+        # It's a potentially removable package. Now check if it's in the keep list.
+        $isInKeepList = $keepList | Where-Object { $currentPackageName -like "$_*" } | Select-Object -First 1
+        if (-not $isInKeepList) {
+            # It matches a removable prefix AND is NOT in the keep list, so remove it.
+            $shouldRemove = $true
+        } else {
+             Write-Host "Keeping $currentPackageName (matches keep list: $isInKeepList)"
+        }
+    }
+    $shouldRemove # Output true or false to the Where-Object filter
 }
+
+# Perform the removal
 foreach ($package in $packagesToRemove) {
     Write-Host "Removing $package..."
     Remove-AppxProvisionedPackage -Path "$ScratchDisk\scratchdir" -PackageName "$package" | Out-Null

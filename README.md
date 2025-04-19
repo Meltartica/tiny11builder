@@ -70,7 +70,6 @@
 
 ## Features to be implemented
 - More ad suppression
-- Customization on what to keep
 
 ## Credits
 - [NTDEV](https://github.com/ntdevlabs) and other contributors for making this amazing script.

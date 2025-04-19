@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
     inputs:
       image_index:
-        description: 'Select the Windows Image Index to use'
+        description: 'Select the Windows ISO Edition to Build'
         required: true
         default: '6: Windows 11 Pro'
         type: choice
@@ -27,9 +27,14 @@ on:
         description: 'Optional: Provide your own Windows 11 ISO URL (leave blank to use default)'
         required: false
         type: string
+      packages_to_keep:
+        description: 'Optional: Comma-separated list of package prefixes to keep (e.g., Microsoft.Paint_,Microsoft.WindowsCalculator_)'
+        required: false
+        type: string
+        default: ''
 
 env:
-  DEFAULT_INDEX: '6'  # Default index when triggered by push
+  DEFAULT_INDEX: '6'
   DEFAULT_ISO_URL: 'https://archive.org/download/Win11_24H2_English_x64/Win11_24H2_English_x64.iso'
 
 jobs:
@@ -89,23 +94,27 @@ jobs:
         shell: pwsh
         run: |
           $drive = "${{ steps.mount_iso.outputs.drive_letter }}"
-          
+            
           # Get index - use input if available (workflow_dispatch), otherwise use default
           if ("${{ github.event_name }}" -eq "workflow_dispatch") {
             $index = "${{ github.event.inputs.image_index }}".Split(':')[0].Trim()
+            $packagesToKeepInput = "${{ github.event.inputs.packages_to_keep }}"
           } else {
             $index = "${{ env.DEFAULT_INDEX }}"
+            $packagesToKeepInput = "" # No input available on push trigger
           }
-          
+            
           $scriptPath = Join-Path $env:GITHUB_WORKSPACE "tiny11maker.ps1"
-
+  
           Write-Host "Running tiny11maker.ps1 with Drive: $drive, Index: $index"
+          Write-Host "Packages to keep input: '$packagesToKeepInput'"
           Write-Host "Script Path: $scriptPath"
-
+  
           Set-ExecutionPolicy RemoteSigned -Scope Process -Force
-
+  
           try {
-              & "$scriptPath" -NonInteractive -DriveLetterInput $drive -Index $index -ErrorAction Stop
+              # Pass the packages to keep string to the script
+              & "$scriptPath" -NonInteractive -DriveLetterInput $drive -Index $index -PackagesToKeep $packagesToKeepInput -ErrorAction Stop 
               Write-Host "tiny11maker script finished successfully."
           } catch {
               Write-Error "tiny11maker script failed: $_"
