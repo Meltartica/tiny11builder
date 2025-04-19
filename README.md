@@ -13,6 +13,7 @@
 4. Press the `Run workflow` button.
    - Select `ISO Image Edition` (e.g., 1 for Home, 6 for Pro)
    - Provide your ISO Image URL (leave blank for default 24H2 Image)
+   - Provide list of package prefixes to keep (e.g., Microsoft.Paint_,Microsoft.People_)
 8. Sit back and relax :)
 9. When the image is done building, press the workflow run `Build Tiny11 ISO` and download the Artifact named `tiny11-iso`.
 
