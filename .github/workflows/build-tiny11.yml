@@ -28,7 +28,7 @@ on:
         required: false
         type: string
       packages_to_keep:
-        description: 'Optional: Comma-separated list of package prefixes to keep (e.g., Microsoft.Paint_,Microsoft.WindowsCalculator_)'
+        description: 'Optional: Comma-separated list of package prefixes to keep (e.g., Microsoft.Paint_,Microsoft.People_)'
         required: false
         type: string
         default: ''
