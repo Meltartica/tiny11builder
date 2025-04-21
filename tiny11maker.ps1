@@ -279,7 +279,7 @@ $removablePackagePrefixes =
     'Microsoft.BingWeather_',
     'Microsoft.GamingApp_',
     'Microsoft.GetHelp_',
-    'Microsoft.Getstarted_',
+    'Microsoft.GetStarted_',
     'Microsoft.MicrosoftOfficeHub_',
     'Microsoft.MicrosoftSolitaireCollection_',
     'Microsoft.OutlookForWindows_',
